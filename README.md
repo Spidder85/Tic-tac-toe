@@ -1,2 +1,2 @@
 # Tic-tac-toe
-Full fron/backend release tic-tac-toe game
+Full front/backend release tic-tac-toe game
