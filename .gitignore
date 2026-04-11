@@ -133,5 +133,7 @@ dkms.conf
 .idea/
 .gigaide/
 .gradle/
-task.md
+tasks/
+
 misc/
+build/
