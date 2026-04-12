@@ -1,6 +1,7 @@
 package app.datasource.model;
 
 import java.util.UUID;
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -14,5 +15,9 @@ public class CurrentGameStorage {
 
     public CurrentGameData findById(UUID gameId) {
         return games.get(gameId);
+    }
+
+    public Collection<CurrentGameData> findAll() {
+        return games.values();
     }
 }

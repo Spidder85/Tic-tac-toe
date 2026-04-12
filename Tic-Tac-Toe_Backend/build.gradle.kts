@@ -10,9 +10,8 @@ group = "Tic-tac-Toe"
 version = "1.0-SNAPSHOT"
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(18)
-    }
+    sourceCompatibility = JavaVersion.VERSION_18
+    targetCompatibility = JavaVersion.VERSION_18
 }
 
 repositories {
@@ -21,6 +20,9 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    runtimeOnly("org.postgresql:postgresql")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -33,6 +35,7 @@ tasks.test {
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
     options.isFork = false
+    options.release.set(18)
 }
 
 tasks.bootJar {

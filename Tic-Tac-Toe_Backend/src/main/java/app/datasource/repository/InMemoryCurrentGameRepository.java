@@ -3,9 +3,12 @@ package app.datasource.repository;
 import app.datasource.mapper.CurrentGameDataMapper;
 import app.datasource.model.CurrentGameData;
 import app.datasource.model.CurrentGameStorage;
+import app.domain.model.GameStatus;
 import app.domain.model.CurrentGame;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class InMemoryCurrentGameRepository implements CurrentGameRepository {
     private final CurrentGameStorage storage;
@@ -29,5 +32,13 @@ public class InMemoryCurrentGameRepository implements CurrentGameRepository {
             return null;
         }
         return mapper.toDomain(currentGameData);
+    }
+
+    @Override
+    public List<CurrentGame> findWaitingGames() {
+        return storage.findAll().stream()
+                .filter(game -> game.getStatus() == GameStatus.WAITING_FOR_PLAYERS)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 }

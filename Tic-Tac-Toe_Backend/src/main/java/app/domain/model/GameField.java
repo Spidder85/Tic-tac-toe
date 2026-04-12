@@ -9,7 +9,7 @@ public class GameField {
         this.cells = new int[SIZE][SIZE];
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
-                this.cells[i][j] = -1;
+                this.cells[i][j] = 0;
             }
         }
     }

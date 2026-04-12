@@ -9,14 +9,26 @@ public class CurrentGameDataMapper {
     public CurrentGameData toData (CurrentGame currentGame) {
         return new CurrentGameData(
                 currentGame.getId(),
-                new GameFieldData(currentGame.getGameField().getCells())
+                new GameFieldData(currentGame.getGameField().getCells()),
+                currentGame.getFirstPlayerId(),
+                currentGame.getSecondPlayerId(),
+                currentGame.getCurrentTurnPlayerId(),
+                currentGame.getWinnerPlayerId(),
+                currentGame.getStatus(),
+                currentGame.isComputerOpponent()
         );
     }
 
     public CurrentGame toDomain (CurrentGameData currentGameData) {
         return new CurrentGame(
                 currentGameData.getGameId(),
-                new GameField(currentGameData.getGameField().getCells())
+                new GameField(currentGameData.getGameField().getCells()),
+                currentGameData.getFirstPlayerId(),
+                currentGameData.getSecondPlayerId(),
+                currentGameData.getCurrentTurnPlayerId(),
+                currentGameData.getWinnerPlayerId(),
+                currentGameData.getStatus(),
+                currentGameData.isComputerOpponent()
         );
     }
 }

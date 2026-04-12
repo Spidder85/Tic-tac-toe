@@ -3,6 +3,10 @@ package app.domain.service;
 import app.datasource.repository.CurrentGameRepository;
 import app.domain.model.CurrentGame;
 import app.domain.model.GameField;
+import app.domain.model.GameStatus;
+
+import java.util.List;
+import java.util.UUID;
 
 public class CurrentGameServiceImpl implements CurrentGameService {
     private static final int EMPTY = 0;
@@ -17,50 +21,151 @@ public class CurrentGameServiceImpl implements CurrentGameService {
 
     @Override
     public CurrentGame getNextMove(CurrentGame currentGame) {
-        validateGameField(currentGame);
-        if (isGameOver(currentGame)) {
-            return repository.save(currentGame);
-        }
-
-        int[][] field = currentGame.getGameField().getCells();
-        int[] bestMove = findBestMove(field);
-        if (bestMove[0] != -1) {
-            field[bestMove[0]][bestMove[1]] = COMPUTER;
-        }
-
-        CurrentGame updateGame = new CurrentGame(currentGame.getId(), new GameField(field));
-        return repository.save(updateGame);
-    }
-
-    @Override
-    public void validateGameField(CurrentGame currentGame) {
-        int[][] currentField = currentGame.getGameField().getCells();
-        validateValues(currentField);
-
         CurrentGame savedGame = repository.findById(currentGame.getId());
         if (savedGame == null) {
             throw new IllegalArgumentException("Game not found");
         }
+        return getNextMove(currentGame, savedGame.getFirstPlayerId());
+    }
 
-        if (isGameOver(currentGame)) {
-            throw new IllegalArgumentException("Game is allready finished");
+    @Override
+    public CurrentGame getNextMove(CurrentGame currentGame, UUID playerId) {
+        CurrentGame savedGame = repository.findById(currentGame.getId());
+        if (savedGame == null) {
+            throw new IllegalArgumentException("Game not found");
+        }
+        if (savedGame.getStatus() != GameStatus.TURN) {
+            throw new IllegalArgumentException("Game is not active");
+        }
+        if (!playerId.equals(savedGame.getCurrentTurnPlayerId())) {
+            throw new IllegalArgumentException("It is not this player's turn");
+        }
+
+        CurrentGame gameForValidation = new CurrentGame(
+                currentGame.getId(),
+                currentGame.getGameField(),
+                savedGame.getFirstPlayerId(),
+                savedGame.getSecondPlayerId(),
+                savedGame.getCurrentTurnPlayerId(),
+                savedGame.getWinnerPlayerId(),
+                savedGame.getStatus(),
+                savedGame.isComputerOpponent()
+        );
+        validateGameField(gameForValidation, savedGame, playerId);
+
+        int[][] field = currentGame.getGameField().getCells();
+        int playerSymbol = getPlayerSymbol(savedGame, playerId);
+        GameStatus status = resolveStatus(field);
+        UUID winnerPlayerId = status == GameStatus.WIN ? playerId : null;
+        UUID nextTurnPlayerId = null;
+
+        if (status == GameStatus.TURN && savedGame.isComputerOpponent()) {
+            int[] bestMove = findBestMove(field);
+            if (bestMove[0] != -1) {
+                field[bestMove[0]][bestMove[1]] = COMPUTER;
+            }
+            status = resolveStatus(field);
+            winnerPlayerId = status == GameStatus.WIN ? null : winnerPlayerId;
+            nextTurnPlayerId = status == GameStatus.TURN ? savedGame.getFirstPlayerId() : null;
+        } else if (status == GameStatus.TURN) {
+            nextTurnPlayerId = playerSymbol == USER ? savedGame.getSecondPlayerId() : savedGame.getFirstPlayerId();
+        }
+
+        return repository.save(new CurrentGame(
+                savedGame.getId(),
+                new GameField(field),
+                savedGame.getFirstPlayerId(),
+                savedGame.getSecondPlayerId(),
+                nextTurnPlayerId,
+                winnerPlayerId,
+                status,
+                savedGame.isComputerOpponent()
+        ));
+    }
+
+    @Override
+    public CurrentGame createGame(UUID ownerId, boolean computerOpponent) {
+        GameStatus status = computerOpponent ? GameStatus.TURN : GameStatus.WAITING_FOR_PLAYERS;
+        UUID currentTurnPlayerId = computerOpponent ? ownerId : null;
+        return repository.save(new CurrentGame(
+                UUID.randomUUID(),
+                new GameField(),
+                ownerId,
+                null,
+                currentTurnPlayerId,
+                null,
+                status,
+                computerOpponent
+        ));
+    }
+
+    @Override
+    public List<CurrentGame> findAvailableGames() {
+        return repository.findWaitingGames();
+    }
+
+    @Override
+    public CurrentGame joinGame(UUID gameId, UUID playerId) {
+        CurrentGame game = repository.findById(gameId);
+        if (game == null) {
+            throw new IllegalArgumentException("Game not found");
+        }
+        if (game.isComputerOpponent()) {
+            throw new IllegalArgumentException("Computer game cannot be joined");
+        }
+        if (game.getStatus() != GameStatus.WAITING_FOR_PLAYERS || game.getSecondPlayerId() != null) {
+            throw new IllegalArgumentException("Game is not available");
+        }
+        if (playerId.equals(game.getFirstPlayerId())) {
+            throw new IllegalArgumentException("Game owner cannot join the same game");
+        }
+        return repository.save(new CurrentGame(
+                game.getId(),
+                game.getGameField(),
+                game.getFirstPlayerId(),
+                playerId,
+                game.getFirstPlayerId(),
+                null,
+                GameStatus.TURN,
+                false
+        ));
+    }
+
+    @Override
+    public CurrentGame findById(UUID gameId) {
+        return repository.findById(gameId);
+    }
+
+    @Override
+    public void validateGameField(CurrentGame currentGame) {
+        CurrentGame savedGame = repository.findById(currentGame.getId());
+        if (savedGame == null) {
+            throw new IllegalArgumentException("Game not found");
+        }
+        validateGameField(currentGame, savedGame, savedGame.getCurrentTurnPlayerId());
+    }
+
+    private void validateGameField(CurrentGame currentGame, CurrentGame savedGame, UUID playerId) {
+        int[][] currentField = currentGame.getGameField().getCells();
+        validateValues(currentField);
+        if (savedGame.getStatus() != GameStatus.TURN) {
+            throw new IllegalArgumentException("Game is already finished or waiting for players");
         }
 
         int[][] previousField = savedGame.getGameField().getCells();
+        int playerSymbol = getPlayerSymbol(savedGame, playerId);
 
         int userMoves = 0;
         for (int row = 0; row < currentField.length; row++) {
             for (int column = 0; column < currentField[row].length; column++) {
-                if (previousField[row][column] == COMPUTER && currentField[row][column] != COMPUTER) {
-                    throw new IllegalArgumentException("Previous computer moves were changed");
+                if (previousField[row][column] != EMPTY && currentField[row][column] != previousField[row][column]) {
+                    throw new IllegalArgumentException("Previous moves were changed");
                 }
-                if (previousField[row][column] == USER && currentField[row][column] != USER) {
-                    throw new IllegalArgumentException("Previous user moves were changed");
+                if (previousField[row][column] == EMPTY && currentField[row][column] != EMPTY
+                        && currentField[row][column] != playerSymbol) {
+                    throw new IllegalArgumentException("Player can use only their own symbol");
                 }
-                if (previousField[row][column] == EMPTY && currentField[row][column] == COMPUTER) {
-                    throw new IllegalArgumentException("Computer move cannot be sent by user");
-                }
-                if (previousField[row][column] == EMPTY && currentField[row][column] == USER) {
+                if (previousField[row][column] == EMPTY && currentField[row][column] == playerSymbol) {
                     userMoves++;
                 }
             }
@@ -76,8 +181,30 @@ public class CurrentGameServiceImpl implements CurrentGameService {
         if (currentGame == null) {
             return false;
         }
-        int[][] field = currentGame.getGameField().getCells();
-        return hasWinner(field, USER) || hasWinner(field, COMPUTER) || isBoardFull(field);
+        return resolveStatus(currentGame.getGameField().getCells()) != GameStatus.TURN;
+    }
+
+    private int getPlayerSymbol(CurrentGame currentGame, UUID playerId) {
+        if (playerId == null) {
+            throw new IllegalArgumentException("Player is required");
+        }
+        if (playerId.equals(currentGame.getFirstPlayerId())) {
+            return USER;
+        }
+        if (!currentGame.isComputerOpponent() && playerId.equals(currentGame.getSecondPlayerId())) {
+            return COMPUTER;
+        }
+        throw new IllegalArgumentException("Player is not a participant of this game");
+    }
+
+    private GameStatus resolveStatus(int[][] field) {
+        if (hasWinner(field, USER) || hasWinner(field, COMPUTER)) {
+            return GameStatus.WIN;
+        }
+        if (isBoardFull(field)) {
+            return GameStatus.DRAW;
+        }
+        return GameStatus.TURN;
     }
 
     private void validateValues(int[][] field) {
