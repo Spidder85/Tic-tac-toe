@@ -132,6 +132,7 @@ dkms.conf
 
 .idea/
 .gigaide/
+.vscode/
 .gradle/
 tasks/
 
