@@ -40,11 +40,11 @@
         <span>Показать пароль</span>
       </label>
 
-      <button type="submit" :disabled="loading">
+      <button type="submit" class="primary-button" :disabled="loading">
         {{ loading ? 'Регистрация...' : 'Зарегистрироваться' }}
       </button>
 
-      <button type="button" :disabled="loading" @click="goToLogin">
+      <button type="button" class="secondary-button" :disabled="loading" @click="goToLogin">
         Уже есть аккаунт
       </button>
 

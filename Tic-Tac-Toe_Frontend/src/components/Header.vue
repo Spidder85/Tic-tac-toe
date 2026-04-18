@@ -29,7 +29,7 @@
         Создать игру
       </router-link>
 
-      <button type="button" @click="logout">
+      <button type="button" class="danger-button" @click="logout">
         Выход
       </button>
     </nav>

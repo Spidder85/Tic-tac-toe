@@ -28,6 +28,22 @@ button:disabled {
     opacity: 0.6;
 }
 
+.danger-button {
+    background: #d64545;
+    color: #fff;
+    padding: 10px 16px;
+}
+
+.primary-button {
+    background: #277e63;
+    color: #fff;
+}
+
+.secondary-button {
+    background: #e6eef5;
+    color: #1f2933;
+}
+
 a {
     color: #0f766e;
     text-decoration: none;
@@ -60,14 +76,14 @@ a.router-link-active {
 }
 
 .header__icon {
-    display: grid;
+    display: inline-grid;
     place-items: center;
     width: 40px;
     height: 40px;
-    border: 1px solid #1f2937;
-    border-radius: 6px;
+    /* border: 1px solid #1f2937; */
+    border-radius: 50%;
     font-weight: 700;
-    background: #e5f3ef;
+    background: #e6eef5;
 }
 
 .header__title {
@@ -149,6 +165,7 @@ a.router-link-active {
     font-weight: 700;
     line-height: 1;
     background: #fff;
+    border-radius: 8px;
 }
 
 .game-board__cell:disabled {

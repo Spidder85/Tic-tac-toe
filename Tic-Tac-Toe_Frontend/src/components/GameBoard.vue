@@ -8,13 +8,20 @@
       :disabled="disabled || cell.value !== MARKERS.EMPTY"
       @click="selectCell(cell.rowIndex, cell.columnIndex)"
     >
-      {{ getMarkerText(cell.value) }}
+      <!-- {{ getMarkerText(cell.value) }} -->
+      <span
+        v-if="getMarkerSvg(cell.value)"
+        class="game-board__marker"
+        v-html="getMarkerSvg(cell.value)"
+      ></span>
     </button>
   </div>
 </template>
 
 <script>
-import { MARKERS, getMarkerText } from '../models/markers.js'
+// import playerX from '../assets/player-x.svg'
+// import playerO from '../assets/player-o.svg'
+import { MARKERS, getMarkerSvg, getMarkerText } from '../models/markers.js'
 
 export default {
   name: 'GameBoard',
@@ -51,6 +58,31 @@ export default {
   },
 
   methods: {
+    // getMarkerImage(marker) {
+    //   if (marker === MARKERS.FIRST_PLAYER) {
+    //     return playerX
+    //   }
+
+    //   if (marker === MARKERS.SECOND_PLAYER) {
+    //     return playerO
+    //   }
+
+    //   return ''
+    // },
+
+    // getMarkerAlt(marker) {
+    //   if (marker === MARKERS.FIRST_PLAYER) {
+    //     return 'Крестик'
+    //   }
+
+    //   if (marker === MARKERS.SECOND_PLAYER) {
+    //     return 'Нолик'
+    //   }
+
+    //   return ''
+    // },
+    getMarkerSvg,
+    
     getMarkerText,
 
     selectCell(rowIndex, columnIndex) {
@@ -62,3 +94,32 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+img {
+  width: 58%;
+  height: 58%;
+}
+
+.game-board__marker {
+    display: block;
+    width: 64px;
+    height: 64px;
+    color: #1f2937;
+    pointer-events: none;
+}
+
+.game-board__marker svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+@media (max-width: 640px) {
+    .game-board__marker {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+</style>

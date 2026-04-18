@@ -137,20 +137,28 @@ export default createStore({
       return game
     },
 
-    async loadGame({ commit }, gameId) {
-      commit('setCurrentGame', null)
+    async loadGame({ state, commit }, gameId) {
+      // commit('setCurrentGame', null)
   
       const game = await gameService.getGame(gameId)
 
-      commit('setCurrentGame', game)
+      const currentGameChanged = JSON.stringify(state.currentGame) !== JSON.stringify(game)
+
+      if (currentGameChanged) {
+        commit('setCurrentGame', game)
+      }
 
       const userIds = [
         game.firstPlayerId,
         game.secondPlayerId
-      ]
+      ].filter(Boolean)
 
-      const usersById = await userService.getUsersByIds(userIds)
-      commit('setUsersById', usersById)
+      const missingUserIds = userIds.filter((userId) => !state.usersById[userId])
+
+      if (missingUserIds.length > 0) {
+        const usersById = await userService.getUsersByIds(missingUserIds)
+        commit('setUsersById', usersById)
+      }
 
       return game
     },

@@ -30,11 +30,11 @@
         <span>Показать пароль</span>
       </label>
 
-      <button type="submit" :disabled="loading">
+      <button type="submit" class="primary-button" :disabled="loading">
         {{ loading ? 'Вход...' : 'Войти' }}
       </button>
 
-      <button type="button" :disabled="loading" @click="goToRegister">
+      <button type="button" class="secondary-button" :disabled="loading" @click="goToRegister">
         Регистрация
       </button>
 
