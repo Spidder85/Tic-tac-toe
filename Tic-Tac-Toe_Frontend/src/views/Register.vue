@@ -47,10 +47,6 @@
       <button type="button" class="secondary-button" :disabled="loading" @click="goToLogin">
         Уже есть аккаунт
       </button>
-
-      <p v-if="errorMessage" class="error">
-        {{ errorMessage }}
-      </p>
     </form>
   </section>
 </template>
@@ -68,8 +64,7 @@ export default {
       password: '',
       passwordRepeat: '',
       showPassword: false,
-      loading: false,
-      errorMessage: ''
+      loading: false
     }
   },
 
@@ -80,6 +75,20 @@ export default {
   },
 
   methods: {
+    showError(text) {
+      this.$store.dispatch('showNotification', {
+        type: 'error',
+        text
+      })
+    },
+
+    showSuccess(text) {
+      this.$store.dispatch('showNotification', {
+        type: 'success',
+        text
+      })
+    },
+
     validateForm() {
       if (!this.login) {
         return 'Введите логин'
@@ -101,12 +110,10 @@ export default {
     },
 
     async register() {
-      this.errorMessage = ''
-
       const validationError = this.validateForm()
 
       if (validationError) {
-        this.errorMessage = validationError
+        this.showError(validationError)
         return
       }
 
@@ -116,13 +123,14 @@ export default {
         const registered = await authService.signUp(this.login, this.password)
 
         if (!registered) {
-          this.errorMessage = 'Регистрация не выполнена'
+          this.showError('Регистрация не выполнена')
           return
         }
 
+        this.showSuccess('Регистрация выполнена успешно')
         this.$router.push('/login')
       } catch (error) {
-        this.errorMessage = getErrorMessage(error, 'Ошибка регистрации')
+        this.showError(getErrorMessage(error, 'Ошибка регистрации'))
       } finally {
         this.loading = false
       }

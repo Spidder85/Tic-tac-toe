@@ -37,10 +37,6 @@
       <button type="button" class="secondary-button" :disabled="loading" @click="goToRegister">
         Регистрация
       </button>
-
-      <p v-if="errorMessage" class="error">
-        {{ errorMessage }}
-      </p>
     </form>
   </section>
 </template>
@@ -56,8 +52,7 @@ export default {
       login: '',
       password: '',
       showPassword: false,
-      loading: false,
-      errorMessage: ''
+      loading: false
     }
   },
 
@@ -68,6 +63,13 @@ export default {
   },
 
   methods: {
+    showError(text) {
+      this.$store.dispatch('showNotification', {
+        type: 'error',
+        text
+      })
+    },
+
     validateForm() {
       if (!this.login) {
         return 'Введите логин'
@@ -81,12 +83,10 @@ export default {
     },
 
     async loginUser() {
-      this.errorMessage = ''
-
       const validationError = this.validateForm()
 
       if (validationError) {
-        this.errorMessage = validationError
+        this.showError(validationError)
         return
       }
 
@@ -98,9 +98,14 @@ export default {
           password: this.password
         })
 
+        this.$store.dispatch('showNotification', {
+          type: 'success',
+          text: 'Вы успешно авторизовались'
+        })
+
         this.$router.push('/games')
       } catch (error) {
-        this.errorMessage = getErrorMessage(error, 'Ошибка авторизации')
+        this.showError(getErrorMessage(error, 'Ошибка авторизации'))
       } finally {
         this.loading = false
       }

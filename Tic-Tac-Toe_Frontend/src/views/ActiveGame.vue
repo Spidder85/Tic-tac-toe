@@ -4,10 +4,6 @@
       Загрузка игры...
     </p>
 
-    <p v-if="errorMessage" class="error">
-      {{ errorMessage }}
-    </p>
-
     <div v-if="game" class="active-game">
       <div class="active-game__header">
         <h2 class="active-game__title">
@@ -58,7 +54,6 @@ export default {
   data() {
     return {
       loading: false,
-      errorMessage: '',
       timerId: null
     }
   },
@@ -124,14 +119,20 @@ export default {
   },
 
   methods: {
+    showError(text) {
+      this.$store.dispatch('showNotification', {
+        type: 'error',
+        text
+      })
+    },
+
     async loadGame() {
       this.loading = true
-      this.errorMessage = ''
 
       try {
         await this.$store.dispatch('loadGame', this.gameId)
       } catch (error) {
-        this.errorMessage = getErrorMessage(error, 'Ошибка загрузки игры')
+        this.showError(getErrorMessage(error, 'Ошибка загрузки игры'))
       } finally {
         this.loading = false
       }
@@ -145,13 +146,12 @@ export default {
       try {
         await this.$store.dispatch('loadGame', this.gameId)
       } catch (error) {
-        this.errorMessage = getErrorMessage(error, 'Ошибка обновления игры')
+        this.showError(getErrorMessage(error, 'Ошибка обновления игры'))
       }
     },
 
     async makeMove(nextGame) {
       this.loading = true
-      this.errorMessage = ''
 
       try {
         await this.$store.dispatch('makeMove', {
@@ -159,7 +159,7 @@ export default {
           game: nextGame
         })
       } catch (error) {
-        this.errorMessage = getErrorMessage(error, 'Ошибка хода')
+        this.showError(getErrorMessage(error, 'Ошибка хода'))
       } finally {
         this.loading = false
       }

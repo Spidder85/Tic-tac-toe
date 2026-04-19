@@ -21,10 +21,6 @@
     <p v-if="loading">
       Создание игры...
     </p>
-
-    <p v-if="errorMessage" class="error">
-      {{ errorMessage }}
-    </p>
   </section>
 </template>
 
@@ -36,21 +32,32 @@ export default {
 
   data() {
     return {
-      loading: false,
-      errorMessage: ''
+      loading: false
     }
   },
 
   methods: {
+    showError(text) {
+      this.$store.dispatch('showNotification', {
+        type: 'error',
+        text
+      })
+    },
+
     async createGame(computerOpponent) {
       this.loading = true
-      this.errorMessage = ''
 
       try {
         const game = await this.$store.dispatch('createGame', computerOpponent)
+
+        this.$store.dispatch('showNotification', {
+          type: 'success',
+          text: 'Игра создана'
+        })
+
         this.$router.push(`/games/${game.id}`)
       } catch (error) {
-        this.errorMessage = getErrorMessage(error, 'Ошибка создания игры')
+        this.showError(getErrorMessage(error, 'Ошибка создания игры'))
       } finally {
         this.loading = false
       }

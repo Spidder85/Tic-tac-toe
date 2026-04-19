@@ -6,6 +6,7 @@ import gameService from '../services/gameService.js'
 const savedUserId = localStorage.getItem('userId')
 const savedLogin = localStorage.getItem('login')
 const savedAuthToken = localStorage.getItem('authToken')
+let notificationId = 0
 
 export default createStore({
   state() {
@@ -21,7 +22,8 @@ export default createStore({
         : null,
       games: [],
       currentGame: null,
-      usersById: {}
+      usersById: {},
+      notifications: []
     }
   },
 
@@ -81,6 +83,23 @@ export default createStore({
 
     setCurrentGame(state, game) {
       state.currentGame = game
+    },
+
+    addNotification(state, notification) {
+      state.notifications.push({
+        id: notificationId++,
+        ...notification
+      })
+    },
+
+    removeNotification(state, notificationId) {
+      state.notifications = state.notifications.filter(
+        (notification) => notification.id !== notificationId
+      )
+    },
+
+    clearNotification(state) {
+      state.notifications = []
     }
   },
 
@@ -177,6 +196,18 @@ export default createStore({
       commit('setUsersById', usersById)
 
       return game
+    },
+
+    showNotification({ commit }, notification) {
+      commit('addNotification', notification)
+    },
+
+    hideNotification({ commit }, notificationId) {
+      commit('removeNotification', notificationId)
+    },
+
+    hideAllNotifications({ commit }) {
+      commit('clearNotifications')
     }
   }
 })

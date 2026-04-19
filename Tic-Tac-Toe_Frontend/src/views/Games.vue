@@ -14,10 +14,6 @@
             Загрузка игр...
         </p>
 
-        <p v-if="errorMessage" class="error">
-            {{ errorMessage }}
-        </p>
-
         <p v-if="!loading && games.length === 0">
             Доступных игр нет
         </p>
@@ -54,8 +50,7 @@ export default {
 
     data() {
         return {
-            loading: false,
-            errorMessage: ''
+            loading: false
         }
     },
 
@@ -74,27 +69,37 @@ export default {
     },
 
     methods: {
+        showError(text) {
+            this.$store.dispatch('showNotification', {
+                type: 'error',
+                text
+            })
+        },
+
         async loadGames() {
             this.loading = true
-            this.errorMessage = ''
 
             try {
                 await this.$store.dispatch('loadGames')
             } catch (error) {
-                this.errorMessage = getErrorMessage(error, 'Ошибка загрузки игр')
+                this.showError(getErrorMessage(error, 'Ошибка загрузки игр'))
             } finally {
                 this.loading = false
             }
         },
 
         async joinGame(gameId) {
-            this.errorMessage = ''
-
             try {
                 const game = await this.$store.dispatch('joinGame', gameId)
+
+                this.$store.dispatch('showNotification', {
+                    type: 'success',
+                    text: `Вы присоединились к игре: ${game.id}`
+                })
+
                 this.$router.push(`/games/${game.id}`)
             } catch (error) {
-                this.errorMessage = getErrorMessage(error, 'Ошибка присоединения к игре')
+                this.showError(getErrorMessage(error, 'Ошибка присоединения к игре'))
             }
         },
 
@@ -108,6 +113,12 @@ export default {
 
         logout() {
             this.$store.dispatch('logout')
+
+            this.$store.dispatch('showNotification', {
+                type: 'info',
+                text: 'Вы вышли из аккаунта'
+            })
+            
             this.$router.push('/login')
         }
     }

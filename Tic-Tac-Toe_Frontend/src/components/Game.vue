@@ -15,10 +15,6 @@
       :disabled="!canMove"
       @cell-click="makeMove"
     />
-
-    <p v-if="errorMessage" class="error">
-      {{ errorMessage }}
-    </p>
   </section>
 </template>
 
@@ -58,12 +54,6 @@ export default {
 
   emits: ['move'],
 
-  data() {
-    return {
-      errorMessage: ''
-    }
-  },
-
   computed: {
     canMove() {
       return canCurrentUserMove(this.game, this.userId)
@@ -83,16 +73,23 @@ export default {
   },
 
   methods: {
-    makeMove(cell) {
-      this.errorMessage = ''
+    showNotification(text, type='error') {
+      this.$store.dispatch('showNotification', {
+        type: type,
+        text
+      })
+    },
 
+    
+
+    makeMove(cell) {
       if (!this.canMove) {
-        this.errorMessage = 'Сейчас не ваш ход'
+        this.showNotification('Сейчас не ваш ход', 'info')
         return
       }
 
       if (this.currentUserMarker === MARKERS.EMPTY) {
-        this.errorMessage = 'Пользователь не является участником игры'
+        this.showNotification('Пользователь не является участником игры', 'info')
         return
       }
 
