@@ -1,3 +1,9 @@
 [submodule "Tic-Tac-Toe_Mobile"]
 	path = Tic-Tac-Toe_Mobile
 	url = https://github.com/Spidder85/Tic-Tac-Toe_Mobile.git
+[submodule "Tic-Tac-Toe_Frontend"]
+	path = Tic-Tac-Toe_Frontend
+	url = https://github.com/Spidder85/Tic-Tac-Toe_Frontend.git
+[submodule "Tic-Tac-Toe_Backend"]
+	path = Tic-Tac-Toe_Backend
+	url = https://github.com/Spidder85/Tic-Tac-Toe_Backend.git
