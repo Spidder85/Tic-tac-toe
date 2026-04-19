@@ -1,6 +1,0 @@
-export const GAME_STATUS = {
-    WAITING_FOR_PLAYERS: 'WAITING_FOR_PLAYERS',
-    TURN: 'TURN',
-    DRAW: 'DRAW',
-    WIN: 'WIN'
-}
